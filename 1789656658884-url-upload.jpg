@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fazliy-all-in-one </title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        :root {
+            --primary: #8b5cf6; --secondary: #06b6d4; --success: #10b981;
+            --danger: #ef4444; --dark: #0f172a; --darker: #020617;
+            --card: #1e293b; --input: #334155; --text: #f1f5f9;
+            --muted: #94a3b8; --border: #475569;
+        }
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--text); min-height: 100vh; padding: 20px;
+        }
+        .container { max-width: 640px; margin: 0 auto; }
+        header { text-align: center; padding: 30px 20px; }
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 8px;
+        }
+        .subtitle { color: var(--muted); font-size: 1rem; }
+        .download-card {
+            background: var(--card); border-radius: 20px; padding: 32px 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);
+        }
+        .input-group { margin-bottom: 24px; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--text); }
+        .input-wrapper { position: relative; }
+        input {
+            width: 100%; padding: 18px 24px; background: var(--input);
+            border: 2px solid var(--border); border-radius: 14px; color: var(--text);
+            font-size: 1rem; outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+        .paste-btn {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: var(--primary); border: none; color: white;
+            padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600;
+        }
+        .download-btn {
+            width: 100%; padding: 18px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white; border: none; border-radius: 14px;
+            font-size: 1.15rem; font-weight: 700; cursor: pointer;
+        }
+        .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .loading { display: none; text-align: center; padding: 30px 20px; }
+        .loading.show { display: block; }
+        .progress-container {
+            width: 100%; height: 12px; background: var(--input);
+            border-radius: 6px; overflow: hidden; margin: 16px 0;
+        }
+        .progress-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 6px; transition: width 0.25s ease;
+        }
+        .progress-text { font-size: 1.3rem; font-weight: 800; color: var(--success); }
+        .progress-text.complete { font-size: 1.5rem; text-shadow: 0 0 10px rgba(16,185,129,0.4); }
+        .progress-status { font-size: 0.95rem; color: var(--muted); margin-top: 6px; }
+        .progress-status.complete { color: var(--success); font-weight: 600; }
+        .result {
+            display: none; margin-top: 24px;
+            animation: fadeUp 0.5s ease forwards;
+        }
+        .result.show { display: block; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-card {
+            background: var(--input); border-radius: 16px; overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .result-thumb { width: 100%; height: 200px; object-fit: cover; background: var(--border); }
+        .result-body { padding: 20px; }
+        .result-title { font-weight: 700; font-size: 1rem; margin-bottom: 10px; line-height: 1.5; }
+        .result-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 18px; }
+        .quality-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+        .q-btn {
+            padding: 12px 22px; background: var(--success); color: white;
+            border-radius: 10px; text-decoration: none; font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .q-btn:hover { transform: scale(1.05); }
+        .error-box {
+            background: rgba(239,68,68,0.15); border: 1px solid var(--danger);
+            border-radius: 12px; padding: 20px; color: #fca5a5; text-align: center;
+        }
+        .debug-box {
+            background: rgba(255,193,7,0.1); border: 1px solid #ffc107;
+            border-radius: 10px; padding: 12px; margin-top: 12px;
+            font-size: 0.8rem; color: #ffd54f; white-space: pre-wrap; word-break: break-all;
+        }
+        .info-box {
+            background: rgba(139,92,246,0.08); border-radius: 14px;
+            padding: 20px; margin-top: 24px; border: 1px solid rgba(139,92,246,0.2);
+            font-size: 0.9rem;
+        }
+        .info-box h3 { font-size: 0.95rem; margin-bottom: 10px; color: #a78bfa; }
+        .info-box ul { list-style: none; color: var(--muted); }
+        .info-box li { padding: 4px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⬇️ Video Downloader</h1>
+            <p class="subtitle">Satu kolom — Unduh semua video</p>
+        </header>
+
+        <div class="download-card">
+            <div class="input-group">
+                <label>🔗 Tempel Link Video</label>
+                <div class="input-wrapper">
+                    <input type="text" id="videoUrl" placeholder="Contoh: https://www.youtube.com/watch?v=...">
+                    <button class="paste-btn" onclick="tempelTautan()">Tempel</button>
+                </div>
+            </div>
+
+            <button class="download-btn" id="prosesBtn" onclick="mulaiProses()">
+                ⚡ Unduh Video
+            </button>
+
+            <!-- Loading -->
+            <div class="loading" id="loadingBox">
+                <p class="progress-text" id="progressAngka">0%</p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-status" id="progressStatus">Menunggu...</p>
+            </div>
+
+            <!-- Hasil -->
+            <div class="result" id="hasilBox">
+                <div class="result-card" id="hasilKonten" style="display:none;">
+                    <img id="hasilThumb" class="result-thumb" alt="Thumbnail">
+                    <div class="result-body">
+                        <h3 class="result-title" id="hasilJudul">—</h3>
+                        <p class="result-meta" id="hasilMeta"></p>
+                        <div class="quality-buttons" id="tombolUnduh"></div>
+                    </div>
+                </div>
+                <div class="error-box" id="errorKotak" style="display:none;"></div>
+                <div class="debug-box" id="debugInfo" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>✅ Cara Pakai</h3>
+            <ul>
+                <li>1️⃣ Salin link video YouTube/TikTok/dll</li>
+                <li>2️⃣ Tempel ke kolom di atas</li>
+                <li>3️⃣ Klik ⚡ Unduh Video</li>
+                <li>4️⃣ Tunggu sampai 100% → Video muncul!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://api.kyzznekoo.my.id/api/downloader/all";
+
+        async function tempelTautan() {
+            try {
+                const teks = await navigator.clipboard.readText();
+                if (teks) document.getElementById('videoUrl').value = teks.trim();
+            } catch (e) { alert('Salin lalu tempel secara manual'); }
+        }
+
+        function tidur(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        async function faseProgress(dari, ke, teks, msPerStep) {
+            const elAngka = document.getElementById('progressAngka');
+            const elBar = document.getElementById('progressBar');
+            const elStatus = document.getElementById('progressStatus');
+            elStatus.classList.remove('complete'); elAngka.classList.remove('complete');
+            elStatus.textContent = teks;
+            for (let i = dari; i <= ke; i++) {
+                elAngka.textContent = i + '%';
+                elBar.style.width = i + '%';
+                if (i < ke) await tidur(msPerStep);
+            }
+            if (ke === 100) {
+                elAngka.textContent = '✅ 100%';
+                elAngka.classList.add('complete');
+                elStatus.textContent = 'Selesai! Menampilkan video... 🎉';
+                elStatus.classList.add('complete');
+            }
+        }
+
+        async function jalankanAnimasiProgress() {
+            document.getElementById('progressAngka').textContent = '0%';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressStatus').textContent = 'Menghubungkan ke server...';
+            document.getElementById('loadingBox').classList.add('show');
+            document.getElementById('hasilBox').classList.remove('show');
+            document.getElementById('hasilKonten').style.display = 'none';
+            document.getElementById('errorKotak').style.display = 'none';
+            document.getElementById('debugInfo').style.display = 'none';
+
+            await faseProgress(0, 30, 'Mencari data Video...', 25);
+            await faseProgress(30, 40, 'Sedang menyusun data...', 40);
+            await faseProgress(40, 60, 'Tinggal sedikit lagi...', 35);
+            await faseProgress(60, 90, 'File siap...', 28);
+            await faseProgress(90, 100, 'Menampilkan hasil...', 20);
+        }
+
+        async function mulaiProses() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) return alert('Masukkan link video terlebih dahulu!');
+
+            document.getElementById('prosesBtn').disabled = true;
+            
+            const animasiSelesai = jalankanAnimasiProgress();
+
+            try {
+                // Panggil API
+                const apiFullUrl = `${API_URL}?url=${encodeURIComponent(url)}`;
+                console.log('Memanggil:', apiFullUrl);
+
+                const res = await fetch(apiFullUrl);
+                const data = await res.json();
+                console.log('Respon API:', data);
+
+                // Tunggu animasi sampai 100%
+                await animasiSelesai;
+
+                // Tampilkan data mentah untuk cek
+                const debugInfo = document.getElementById('debugInfo');
+                debugInfo.textContent = 'Data dari API: ' + JSON.stringify(data, null, 2);
+                debugInfo.style.display = 'block';
+
+                // Cek status API
+                if (data.status === false) {
+                    tampilkanError(data.error || 'Link tidak didukung');
+                    return;
+                }
+
+                // Ambil data hasil — cek SEMUA kemungkinan format
+                let hasil = null;
+                if (data.data?.result) hasil = data.data.result;
+                else if (data.result) hasil = data.result;
+                else hasil = data;
+
+                if (!hasil && !hasil.metadata && !hasil.url) {
+                    tampilkanError('Format data tidak dikenali');
+                    return;
+                }
+
+                // Ambil informasi
+                const judul = hasil.metadata?.title || hasil.title || 'Video Tanpa Judul';
+                const thumb = hasil.metadata?.thumbnail || hasil.thumbnail || '';
+                const durasi = hasil.metadata?.duration || hasil.duration || 0;
+                const saluran = hasil.metadata?.channel || hasil.uploader || '';
+                
+                // Ambil link unduh — cek SEMUA kemungkinan
+                let linkUnduh = hasil.url || hasil.download || hasil.urls || 
+                                hasil.data?.url || hasil.data?.download || '';
+
+                // Jika ada beberapa kualitas
+                let daftarKualitas = [];
+                if (hasil.sd) daftarKualitas.push({label: 'SD', url: hasil.sd});
+                if (hasil.hd) daftarKualitas.push({label: 'HD', url: hasil.hd});
+
+                if (!linkUnduh && daftarKualitas.length === 0) {
+                    tampilkanError('Link unduh tidak ditemukan — coba link lain');
+                    return;
+                }
+
+                // === TAMPILKAN VIDEO ===
+                document.getElementById('loadingBox').classList.remove('show');
+
+                const konten = document.getElementById('hasilKonten');
+                konten.style.display = 'block';
+
+                document.getElementById('hasilJudul').textContent = judul;
+                document.getElementById('hasilMeta').textContent = 
+                    (saluran ? saluran + ' • ' : '') + formatDurasi(durasi);
+
+                const imgThumb = document.getElementById('hasilThumb');
+                if (thumb) {
+                    imgThumb.src = thumb;
+                    imgThumb.style.display = 'block';
+                } else {
+                    imgThumb.style.display = 'none';
+                }
+
+                const tombolWrap = document.getElementById('tombolUnduh');
+                tombolWrap.innerHTML = '';
+
+                if (daftarKualitas.length > 0) {
+                    daftarKualitas.forEach(q => {
+                        const a = document.createElement('a');
+                        a.href = q.url; a.target = '_blank';
+                        a.className = 'q-btn'; a.textContent = `⬇️ Unduh ${q.label}`;
+                        tombolWrap.appendChild(a);
+                    });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = linkUnduh; a.target = '_blank';
+                    a.className = 'q-btn'; a.textContent = '⬇️ Unduh Video';
+                    tombolWrap.appendChild(a);
+                }
+
+                // Munculkan dengan animasi
+                setTimeout(() => {
+                    document.getElementById('hasilBox').classList.add('show');
+                }, 100);
+
+            } catch (err) {
+                console.error('Error:', err);
+                await animasiSelesai;
+                tampilkanError('Kesalahan: ' + err.message + ' — Coba ganti browser/link');
+            } finally {
+                document.getElementById('prosesBtn').disabled = false;
+            }
+        }
+
+        function tampilkanError(pesan) {
+            document.getElementById('loadingBox').classList.remove('show');
+            document.getElementById('hasilKonten').style.display = 'none';
+            const kotak = document.getElementById('errorKotak');
+            kotak.style.display = 'block';
+            kotak.textContent = '❌ ' + pesan;
+            setTimeout(() => {
+                document.getElementById('hasilBox').classList.add('show');
+            }, 100);
+        }
+
+        function formatDurasi(detik) {
+            if (!detik) return '';
+            const m = Math.floor(detik / 60);
+            const d = detik % 60;
+            return `${m}:${String(d).padStart(2,'0')}`;
+        }
+    </script>
+</body>
+</html>
